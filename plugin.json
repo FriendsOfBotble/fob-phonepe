@@ -1,0 +1,11 @@
+{
+    "id": "friendsofbotble/fob-phonepe",
+    "name": "PhonePe",
+    "namespace": "FriendsOfBotble\\PhonePe\\",
+    "provider": "FriendsOfBotble\\PhonePe\\Providers\\PhonePeServiceProvider",
+    "author": "Friends Of Botble",
+    "url": "https://friendsofbotble.com",
+    "version": "0.1.0",
+    "description": "",
+    "minimum_core_version": "7.3.0"
+}
