@@ -1,6 +1,6 @@
 <?php
 
-namespace src;
+namespace FriendsOfBotble\PhonePe;
 
 use Botble\PluginManagement\Abstracts\PluginOperationAbstract;
 

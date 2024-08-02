@@ -6,7 +6,7 @@ use Botble\Base\Facades\BaseHelper;
 use Botble\Base\Forms\FieldOptions\TextFieldOption;
 use Botble\Base\Forms\Fields\TextField;
 use Botble\Payment\Forms\PaymentMethodForm;
-use FriendsOfBotble\PhonePe\PhonePePayment;
+use FriendsOfBotble\PhonePe\Facades\PhonePePayment;
 
 class PhonePePaymentMethodForm extends PaymentMethodForm
 {
@@ -17,7 +17,7 @@ class PhonePePaymentMethodForm extends PaymentMethodForm
         $this
             ->paymentId(PhonePePayment::getId())
             ->paymentName(PhonePePayment::getDisplayName())
-            ->paymentDescription(__('Customer can buy product and pay directly using Visa, Credit card via :name', ['name' => 'Paystack']))
+            ->paymentDescription(__('Customer can buy product and pay directly using Visa, Credit card via :name', ['name' => 'PhonePe']))
             ->paymentLogo(url('vendor/core/plugins/fob-phonepe/images/phonepe.png'))
             ->paymentUrl('https://www.phonepe.com')
             ->paymentInstructions(view('plugins/paystack::instructions')->render())
