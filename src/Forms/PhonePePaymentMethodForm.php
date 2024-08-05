@@ -3,7 +3,9 @@
 namespace FriendsOfBotble\PhonePe\Forms;
 
 use Botble\Base\Facades\BaseHelper;
+use Botble\Base\Forms\FieldOptions\RadioFieldOption;
 use Botble\Base\Forms\FieldOptions\TextFieldOption;
+use Botble\Base\Forms\Fields\RadioField;
 use Botble\Base\Forms\Fields\TextField;
 use Botble\Payment\Forms\PaymentMethodForm;
 use FriendsOfBotble\PhonePe\Facades\PhonePePayment;
@@ -40,7 +42,18 @@ class PhonePePaymentMethodForm extends PaymentMethodForm
                 TextField::class,
                 TextFieldOption::make()
                     ->label(trans('plugins/fob-phonepe::phonepe.salt_index'))
-                ->value(get_payment_setting('salt_index', PhonePePayment::getId()))
+                    ->value(get_payment_setting('salt_index', PhonePePayment::getId()))
+            )
+            ->add(
+                get_payment_setting_key('environment', PhonePePayment::getId()),
+                RadioField::class,
+                RadioFieldOption::make()
+                    ->label(trans('plugins/fob-phonepe::phonepe.environment'))
+                    ->choices([
+                        'PRODUCTION' => trans('plugins/fob-phonepe::phonepe.production'),
+                        'UAT' => trans('plugins/fob-phonepe::phonepe.testing'),
+                    ])
+                    ->selected(get_payment_setting('environment', PhonePePayment::getId(), 'UAT'))
             );
     }
 }
