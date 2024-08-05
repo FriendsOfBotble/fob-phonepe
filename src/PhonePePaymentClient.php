@@ -21,7 +21,7 @@ class PhonePePaymentClient
     {
         $request = PgPayRequestBuilder::builder()
             ->mobileNumber($data['address']['phone'])
-            ->callbackUrl('https://webhook.in/test/status')
+            ->callbackUrl(route('payment.phonepe.status'))
             ->merchantId(get_payment_setting('merchant_id', PhonePePayment::getId()))
             ->merchantUserId($data['customer_id'])
             ->amount($data['amount'] * 100)

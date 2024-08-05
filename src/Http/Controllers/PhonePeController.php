@@ -6,6 +6,7 @@ use Botble\Base\Http\Controllers\BaseController;
 use Botble\Payment\Enums\PaymentStatusEnum;
 use Botble\Payment\Models\Payment;
 use Botble\Payment\Supports\PaymentHelper;
+use Exception;
 use FriendsOfBotble\PhonePe\PhonePePaymentClient;
 use Illuminate\Http\Request;
 
@@ -48,5 +49,35 @@ class PhonePeController extends BaseController
             ->httpResponse()
             ->setNextUrl(PaymentHelper::getRedirectURL())
             ->setMessage(__('Payment successfully!'));
+    }
+
+    public function status(Request $request)
+    {
+        $request->validate([
+            'response' => ['required', 'string'],
+        ]);
+
+        try {
+            $data = base64_decode(json_decode($request->input('response')))['data'];
+
+            $status = match ($data['state']) {
+                'COMPLETED' => PaymentStatusEnum::COMPLETED,
+                'PENDING' => PaymentStatusEnum::PENDING,
+                default => PaymentStatusEnum::FAILED,
+            };
+
+            $payment = Payment::query()
+                ->where('charge_id', $data['transactionId'])
+                ->where('status', PaymentStatusEnum::PENDING)
+                ->firstOrFail();
+
+            $payment->update([
+                'status' => $status,
+            ]);
+
+            return response()->noContent();
+        } catch (Exception $e) {
+            abort(400);
+        }
     }
 }
