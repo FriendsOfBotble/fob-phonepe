@@ -7,6 +7,7 @@ use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Botble\Ecommerce\Models\Currency;
 use Botble\Payment\Enums\PaymentMethodEnum;
 use Botble\Payment\Facades\PaymentMethods;
+use Botble\Payment\Models\Payment;
 use FriendsOfBotble\PhonePe\Contracts\PhonePePayment as PhonePePaymentContract;
 use FriendsOfBotble\PhonePe\Facades\PhonePePayment as PhonePePaymentFacade;
 use FriendsOfBotble\PhonePe\Forms\PhonePePaymentMethodForm;
@@ -27,7 +28,7 @@ class PhonePeServiceProvider extends ServiceProvider
                     get_payment_setting('salt_key', PhonePePaymentFacade::getId()),
                     get_payment_setting('salt_index', PhonePePaymentFacade::getId()),
                     get_payment_setting('environment', PhonePePaymentFacade::getId(), 'UAT'),
-                    true
+                    get_payment_setting('should_public_events', PhonePePaymentFacade::getId(), false)
                 )
             );
         });
@@ -63,6 +64,14 @@ class PhonePeServiceProvider extends ServiceProvider
                 }
 
                 return $value;
+            }, 999, 2);
+
+            add_filter(PAYMENT_FILTER_GET_SERVICE_CLASS, function (string $class, string $payment) {
+                if ($payment == PhonePePaymentFacade::getId()) {
+                    $class = PhonePePayment::class;
+                }
+
+                return $class;
             }, 999, 2);
 
             add_filter(PAYMENT_FILTER_ADDITIONAL_PAYMENT_METHODS, function (?string $html, array $data): ?string {
@@ -116,6 +125,16 @@ class PhonePeServiceProvider extends ServiceProvider
             $result = PhonePePaymentFacade::authorize($data, $request);
 
             return [...$data, ...$result];
+        }, 999, 2);
+
+        add_filter(PAYMENT_FILTER_PAYMENT_INFO_DETAIL, function (?string $html, Payment $payment): ?string {
+            if ($payment->payment_channel == PhonePePaymentFacade::getId()) {
+                $response = $this->app->make(PhonePePaymentClient::class)->getStatus($payment->charge_id);
+
+                $html = view('plugins/fob-phonepe::detail', compact('response'))->render();
+            }
+
+            return $html;
         }, 999, 2);
     }
 }

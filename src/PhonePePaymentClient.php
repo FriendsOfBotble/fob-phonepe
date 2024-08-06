@@ -2,12 +2,14 @@
 
 namespace FriendsOfBotble\PhonePe;
 
-use Botble\Payment\Enums\PaymentStatusEnum;
 use Botble\Payment\Supports\PaymentHelper;
+use Exception;
 use FriendsOfBotble\PhonePe\Facades\PhonePePayment;
 use FriendsOfBotble\PhonePe\PhonePe\common\exceptions\PhonePeException;
 use FriendsOfBotble\PhonePe\PhonePe\payments\v1\models\request\builders\InstrumentBuilder;
 use FriendsOfBotble\PhonePe\PhonePe\payments\v1\models\request\builders\PgPayRequestBuilder;
+use FriendsOfBotble\PhonePe\PhonePe\payments\v1\models\request\builders\PgRefundRequestBuilder;
+use FriendsOfBotble\PhonePe\PhonePe\payments\v1\models\response\PgRefundResponse;
 use FriendsOfBotble\PhonePe\PhonePe\payments\v1\PhonePePaymentClient as BasePhonePePaymentClient;
 
 class PhonePePaymentClient
@@ -46,7 +48,7 @@ class PhonePePaymentClient
         }
     }
 
-    public function getStatus(string $transactionId): ?string
+    public function getStatus(string $transactionId): ?PhonePe\payments\v1\models\response\PgCheckStatusResponse
     {
         $request = [
             'transaction_id' => $transactionId,
@@ -57,17 +59,37 @@ class PhonePePaymentClient
 
             PaymentHelper::log(PhonePePayment::getId(), $request, $response->jsonSerialize());
 
-            return match ($response->getState()) {
-                'SUCCESS' => PaymentStatusEnum::COMPLETED,
-                'PENDING' => PaymentStatusEnum::PENDING,
-                default => PaymentStatusEnum::FAILED,
-            };
-        } catch (PhonePeException $e) {
+            return $response;
+        } catch (Exception $e) {
             PaymentHelper::log(PhonePePayment::getId(), $request, [
                 'body' => $e->getMessage(),
             ]);
 
             return null;
+        }
+    }
+
+    public function refund(string $transactionId, string $merchantTransactionId, float $amount): PgRefundResponse|string
+    {
+        $request = PgRefundRequestBuilder::builder()
+            ->originalTransactionId($transactionId)
+            ->merchantId(get_payment_setting('merchant_id', PhonePePayment::getId()))
+            ->merchantTransactionId($merchantTransactionId)
+            ->amount($amount)
+            ->build();
+
+        try {
+            $response = $this->paymentClient->refund($request);
+
+            PaymentHelper::log(PhonePePayment::getId(), $request->jsonSerialize(), $response->jsonSerialize());
+
+            return $response;
+        } catch (Exception $e) {
+            PaymentHelper::log(PhonePePayment::getId(), $request->jsonSerialize(), [
+                'body' => $e->getMessage(),
+            ]);
+
+            return $e->getMessage();
         }
     }
 }

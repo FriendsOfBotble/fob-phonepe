@@ -18,7 +18,13 @@ class PhonePeController extends BaseController
             'trans_id' => ['required', 'string', 'exists:payments,charge_id'],
         ]);
 
-        $status = $client->getStatus($request->input('trans_id'));
+        $response = $client->getStatus($request->input('trans_id'));
+
+        $status = match ($response->getState()) {
+            'SUCCESS' => PaymentStatusEnum::COMPLETED,
+            'PENDING' => PaymentStatusEnum::PENDING,
+            default => PaymentStatusEnum::FAILED,
+        };
 
         if (! $status) {
             return $this
@@ -35,6 +41,7 @@ class PhonePeController extends BaseController
 
         $payment->update([
             'status' => $status,
+            'metadata' => $response->jsonSerialize(),
         ]);
 
         if ($status !== PaymentStatusEnum::COMPLETED) {
@@ -73,10 +80,11 @@ class PhonePeController extends BaseController
 
             $payment->update([
                 'status' => $status,
+                'metadata' => $data,
             ]);
 
             return response()->noContent();
-        } catch (Exception $e) {
+        } catch (Exception) {
             abort(400);
         }
     }

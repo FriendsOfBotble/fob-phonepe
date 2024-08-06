@@ -14,5 +14,9 @@ interface PhonePePayment
 
     public function supportedCurrencies(): array;
 
+    public function isSupportRefundOnline(): bool;
+
     public function authorize(array $data, Request $request): array;
+
+    public function refund(string $transactionId, float $amount, array $data = []): array;
 }
