@@ -7,9 +7,11 @@ use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Botble\Ecommerce\Models\Currency;
 use Botble\Payment\Enums\PaymentMethodEnum;
 use Botble\Payment\Facades\PaymentMethods;
-use FriendsOfBotble\PhonePe\Facades\PhonePePayment;
+use Botble\Payment\Models\Payment;
+use FriendsOfBotble\PhonePe\Contracts\PhonePePayment as PhonePePaymentContract;
+use FriendsOfBotble\PhonePe\Facades\PhonePePayment as PhonePePaymentFacade;
 use FriendsOfBotble\PhonePe\Forms\PhonePePaymentMethodForm;
-use FriendsOfBotble\PhonePe\PhonePe\Env;
+use FriendsOfBotble\PhonePe\PhonePePayment;
 use FriendsOfBotble\PhonePe\PhonePePaymentClient;
 use Illuminate\Http\Request;
 
@@ -22,14 +24,16 @@ class PhonePeServiceProvider extends ServiceProvider
         $this->app->bind(PhonePePaymentClient::class, function () {
             return new PhonePePaymentClient(
                 new \FriendsOfBotble\PhonePe\PhonePe\payments\v1\PhonePePaymentClient(
-                    get_payment_setting('merchant_id', PhonePePayment::getId()),
-                    get_payment_setting('salt_key', PhonePePayment::getId()),
-                    get_payment_setting('salt_index', PhonePePayment::getId()),
-                    Env::UAT,
-                    true
+                    get_payment_setting('merchant_id', PhonePePaymentFacade::getId()),
+                    get_payment_setting('salt_key', PhonePePaymentFacade::getId()),
+                    get_payment_setting('salt_index', PhonePePaymentFacade::getId()),
+                    get_payment_setting('environment', PhonePePaymentFacade::getId(), 'UAT'),
+                    get_payment_setting('should_public_events', PhonePePaymentFacade::getId(), false)
                 )
             );
         });
+
+        $this->app->bind(PhonePePaymentContract::class, fn () => new PhonePePayment());
     }
 
     public function boot(): void
@@ -48,33 +52,41 @@ class PhonePeServiceProvider extends ServiceProvider
 
             add_filter(BASE_FILTER_ENUM_ARRAY, function ($values, $class) {
                 if ($class === PaymentMethodEnum::class) {
-                    $values['PHONEPE'] = PhonePePayment::getId();
+                    $values['PHONEPE'] = PhonePePaymentFacade::getId();
                 }
 
                 return $values;
             }, 999, 2);
 
             add_filter(BASE_FILTER_ENUM_LABEL, function ($value, $class) {
-                if ($class === PaymentMethodEnum::class && $value == PhonePePayment::getId()) {
-                    $value = PhonePePayment::getDisplayName();
+                if ($class === PaymentMethodEnum::class && $value == PhonePePaymentFacade::getId()) {
+                    $value = PhonePePaymentFacade::getDisplayName();
                 }
 
                 return $value;
             }, 999, 2);
 
+            add_filter(PAYMENT_FILTER_GET_SERVICE_CLASS, function (string $class, string $payment) {
+                if ($payment == PhonePePaymentFacade::getId()) {
+                    $class = PhonePePayment::class;
+                }
+
+                return $class;
+            }, 999, 2);
+
             add_filter(PAYMENT_FILTER_ADDITIONAL_PAYMENT_METHODS, function (?string $html, array $data): ?string {
-                if (! get_payment_setting('status', PhonePePayment::getId())) {
+                if (! get_payment_setting('status', PhonePePaymentFacade::getId())) {
                     return $html;
                 }
 
                 $data = [
                     ...$data,
-                    'paymentId' => PhonePePayment::getId(),
-                    'paymentDisplayName' => PhonePePayment::getDisplayName(),
-                    'supportedCurrencies' => PhonePePayment::supportedCurrencies(),
+                    'paymentId' => PhonePePaymentFacade::getId(),
+                    'paymentDisplayName' => PhonePePaymentFacade::getDisplayName(),
+                    'supportedCurrencies' => PhonePePaymentFacade::supportedCurrencies(),
                 ];
 
-                PaymentMethods::method(PhonePePayment::getId(), [
+                PaymentMethods::method(PhonePePaymentFacade::getId(), [
                     'html' => view('plugins/fob-phonepe::payment-method', $data)->render(),
                 ]);
 
@@ -83,7 +95,7 @@ class PhonePeServiceProvider extends ServiceProvider
         });
 
         add_filter(PAYMENT_FILTER_AFTER_POST_CHECKOUT, function (array $data, Request $request) {
-            if ($data['type'] !== PhonePePayment::getId()) {
+            if ($data['type'] !== PhonePePaymentFacade::getId()) {
                 return $data;
             }
 
@@ -91,9 +103,9 @@ class PhonePeServiceProvider extends ServiceProvider
 
             $data = apply_filters(PAYMENT_FILTER_PAYMENT_DATA, [], $request);
 
-            if (! in_array(strtoupper($currentCurrency->title), PhonePePayment::supportedCurrencies())) {
+            if (! in_array(strtoupper($currentCurrency->title), PhonePePaymentFacade::supportedCurrencies())) {
                 $supportedCurrency = Currency::query()
-                    ->whereIn('title', PhonePePayment::supportedCurrencies())
+                    ->whereIn('title', PhonePePaymentFacade::supportedCurrencies())
                     ->first();
 
                 if ($supportedCurrency) {
@@ -105,14 +117,24 @@ class PhonePeServiceProvider extends ServiceProvider
                             $data['amount'] / $currentCurrency->exchange_rate,
                             $currentCurrency,
                             true
-                        );
+                        ) * $supportedCurrency->exchange_rate;
                     }
                 }
             }
 
-            $result = PhonePePayment::authorize($data, $request);
+            $result = PhonePePaymentFacade::authorize($data, $request);
 
             return [...$data, ...$result];
+        }, 999, 2);
+
+        add_filter(PAYMENT_FILTER_PAYMENT_INFO_DETAIL, function (?string $html, Payment $payment): ?string {
+            if ($payment->payment_channel == PhonePePaymentFacade::getId()) {
+                $response = $this->app->make(PhonePePaymentClient::class)->getStatus($payment->charge_id);
+
+                $html = view('plugins/fob-phonepe::detail', compact('response'))->render();
+            }
+
+            return $html;
         }, 999, 2);
     }
 }
