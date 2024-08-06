@@ -7,6 +7,7 @@ use Botble\Payment\Models\Payment;
 use FriendsOfBotble\PhonePe\Contracts\PhonePePayment as PhonePePaymentContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class PhonePePayment implements PhonePePaymentContract
 {
@@ -47,7 +48,7 @@ class PhonePePayment implements PhonePePaymentContract
 
     public function generateTransactionId(): string
     {
-        return 'PHPSDK' . date('ymdHis') . 'payPageTest';
+        return Str::uuid();
     }
 
     public function authorize(array $data, Request $request): array
