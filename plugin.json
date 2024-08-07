@@ -5,7 +5,7 @@
     "provider": "FriendsOfBotble\\PhonePe\\Providers\\PhonePeServiceProvider",
     "author": "Friends Of Botble",
     "url": "https://friendsofbotble.com",
-    "version": "0.1.0",
-    "description": "",
+    "version": "1.0.1",
+    "description": "PhonePe payment gateway for Botble scripts",
     "minimum_core_version": "7.3.0"
 }
