@@ -21,6 +21,7 @@ class PhonePeController extends BaseController
         $response = $client->getStatus($request->input('trans_id'));
 
         $status = match ($response->getState()) {
+            'COMPLETED' => PaymentStatusEnum::COMPLETED,
             'SUCCESS' => PaymentStatusEnum::COMPLETED,
             'PENDING' => PaymentStatusEnum::PENDING,
             default => PaymentStatusEnum::FAILED,
