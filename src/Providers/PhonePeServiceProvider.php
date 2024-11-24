@@ -21,6 +21,10 @@ class PhonePeServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        if (! is_plugin_active('payment')) {
+            return;
+        }
+
         $this->app->bind(PhonePePaymentClient::class, function () {
             return new PhonePePaymentClient(
                 new \FriendsOfBotble\PhonePe\PhonePe\payments\v1\PhonePePaymentClient(
@@ -38,6 +42,10 @@ class PhonePeServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (! is_plugin_active('payment')) {
+            return;
+        }
+
         $this
             ->setNamespace('plugins/fob-phonepe')
             ->loadAndPublishViews()
