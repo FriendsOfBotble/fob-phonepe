@@ -24,7 +24,7 @@ class PhonePePaymentMethodForm extends PaymentMethodForm
             ->paymentDescription(__('Customer can buy product and pay directly using Visa, Credit card via :name', ['name' => 'PhonePe']))
             ->paymentLogo(url('vendor/core/plugins/fob-phonepe/images/phonepe.png'))
             ->paymentUrl('https://www.phonepe.com')
-            ->paymentInstructions(view('plugins/paystack::instructions')->render())
+            ->paymentInstructions(view('plugins/fob-phonepe::instructions')->render())
             ->add(
                 get_payment_setting_key('merchant_id', PhonePePayment::getId()),
                 TextField::class,
