@@ -48,7 +48,7 @@ class PhonePePaymentClient
         }
     }
 
-    public function getStatus(string $transactionId): ?PhonePe\payments\v1\models\response\PgCheckStatusResponse
+    public function getStatus(string $transactionId, bool $throwable = false): ?PhonePe\payments\v1\models\response\PgCheckStatusResponse
     {
         $request = [
             'transaction_id' => $transactionId,
@@ -64,6 +64,10 @@ class PhonePePaymentClient
             PaymentHelper::log(PhonePePayment::getId(), $request, [
                 'body' => $e->getMessage(),
             ]);
+
+            if ($throwable) {
+                throw $e;
+            }
 
             return null;
         }

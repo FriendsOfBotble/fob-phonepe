@@ -18,7 +18,23 @@ class PhonePeController extends BaseController
             'trans_id' => ['required', 'string', 'exists:payments,charge_id'],
         ]);
 
-        $response = $client->getStatus($request->input('trans_id'));
+        try {
+            $response = $client->getStatus($request->input('trans_id'), true);
+        } catch (Exception) {
+            return $this
+                ->httpResponse()
+                ->setError()
+                ->setNextUrl(PaymentHelper::getCancelURL())
+                ->setMessage(__('Payment failed!'));
+        }
+
+        if (! $response) {
+            return $this
+                ->httpResponse()
+                ->setError()
+                ->setNextUrl(PaymentHelper::getCancelURL())
+                ->setMessage(__('Payment failed!'));
+        }
 
         $status = match ($response->getState()) {
             'COMPLETED' => PaymentStatusEnum::COMPLETED,
