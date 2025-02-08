@@ -139,7 +139,11 @@ class PhonePeServiceProvider extends ServiceProvider
             if ($payment->payment_channel == PhonePePaymentFacade::getId()) {
                 $response = $this->app->make(PhonePePaymentClient::class)->getStatus($payment->charge_id);
 
-                $html = view('plugins/fob-phonepe::detail', compact('response'))->render();
+                if (! $response) {
+                    return $html;
+                }
+
+                $html .= view('plugins/fob-phonepe::detail', compact('response'))->render();
             }
 
             return $html;
