@@ -188,19 +188,19 @@ class ObjectMapper
     public static function mapResponse($response, $path): Response
     {
         $data = null;
-        if($path == PaymentConstants::PAY_API) {
+        if ($path == PaymentConstants::PAY_API) {
             $data = self::pgPayResponseMapper($response->data);
         }
-        if($path == PaymentConstants::REFUND_API) {
+        if ($path == PaymentConstants::REFUND_API) {
             $data = self::pgRefundResponseMapper($response->data);
         }
-        if($path == PaymentConstants::STATUS_API) {
+        if ($path == PaymentConstants::STATUS_API) {
             $data = CheckStatusMapper::pgCheckStatusResponseMapper($response->data);
         }
-        if($path == PaymentConstants::VALIDATE_VPA_API) {
+        if ($path == PaymentConstants::VALIDATE_VPA_API) {
             $data = self::pgValidateVpaResponseMapper($response->data);
         }
-        if($path == PaymentConstants::PAYMENT_OPTIONS_API) {
+        if ($path == PaymentConstants::PAYMENT_OPTIONS_API) {
             $data = self::pgPaymentOptionsResponseMapper($response->data);
         }
 

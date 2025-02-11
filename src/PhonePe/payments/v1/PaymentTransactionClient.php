@@ -49,7 +49,7 @@ class PaymentTransactionClient extends TransactionClient
 
         $httpResponseObj = RequestGenerator::postRequest($request->getUrl(), $request->getPayload(), $request->getHeaders());
         $httpResponse = json_decode($httpResponseObj->getResponse());
-        if($httpResponse->success) {
+        if ($httpResponse->success) {
             $response = ObjectMapper::mapResponse($httpResponse, PaymentConstants::PAY_API);
 
             return $response->getData();
@@ -79,7 +79,7 @@ class PaymentTransactionClient extends TransactionClient
 
         $httpResponseObj = RequestGenerator::postRequest($request->getUrl(), $request->getPayload(), $request->getHeaders());
         $httpResponse = json_decode($httpResponseObj->getResponse());
-        if($httpResponse->success) {
+        if ($httpResponse->success) {
             $response = ObjectMapper::mapResponse($httpResponse, PaymentConstants::REFUND_API);
 
             return $response->getData();
@@ -107,7 +107,7 @@ class PaymentTransactionClient extends TransactionClient
 
         $code = $httpResponse->code;
 
-        if(strcmp($code, 'TRANSACTION_NOT_FOUND') == 0) {
+        if (strcmp($code, 'TRANSACTION_NOT_FOUND') == 0) {
             throw new PhonePeException('Transaction NotFound');
         }
 
@@ -141,7 +141,7 @@ class PaymentTransactionClient extends TransactionClient
 
         $httpResponseObj = RequestGenerator::postRequest($request->getUrl(), $request->getPayload(), $request->getHeaders());
         $httpResponse = json_decode($httpResponseObj->getResponse());
-        if($httpResponse->success) {
+        if ($httpResponse->success) {
             $response = ObjectMapper::mapResponse($httpResponse, PaymentConstants::VALIDATE_VPA_API);
 
             return $response->getData();
@@ -162,7 +162,7 @@ class PaymentTransactionClient extends TransactionClient
             $this->getHeaders()
         );
         $pathForCheckSum = $request->getUrl();
-        if($includeNetBankingBanksList) {
+        if ($includeNetBankingBanksList) {
             $pathForCheckSum = $pathForCheckSum . '?' . PaymentConstants::NETBANKING_INCLUDE_LIST . '=true';
         }
 

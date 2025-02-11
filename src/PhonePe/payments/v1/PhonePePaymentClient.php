@@ -48,7 +48,7 @@ class PhonePePaymentClient extends PhonePeClient
             $shouldPublishEvents,
             $this->paymentTransactionClient->getHeaders()
         );
-        if($shouldPublishEvents) {
+        if ($shouldPublishEvents) {
             $this->eventPublisher->sendEvent(SdkEvent::buildClientInitEvent(EventState::INIT, $merchantId));
         }
         $this->shouldPublishEvents = $shouldPublishEvents;
@@ -113,7 +113,6 @@ class PhonePePaymentClient extends PhonePeClient
         $this->eventPublisher->sendEvent(
             SdkEvent::buildPayEvent(EventState::INIT, $pgPayRequest)
         );
-        $pgPayResponse = null;
 
         try {
             $pgPayResponse = $this->paymentTransactionClient->pay($pgPayRequest);
@@ -142,7 +141,6 @@ class PhonePePaymentClient extends PhonePeClient
         $this->eventPublisher->sendEvent(
             SdkEvent::buildRefundEvent(EventState::INIT, $pgRefundRequest)
         );
-        $pgRefundResponse = null;
 
         try {
             $pgRefundResponse = $this->paymentTransactionClient->refund($pgRefundRequest);
@@ -168,7 +166,6 @@ class PhonePePaymentClient extends PhonePeClient
      */
     public function statusCheck(string $merchantTransactionId): PgCheckStatusResponse
     {
-        $pgCheckStatusResponse = null;
         $this->eventPublisher->sendEvent(
             SdkEvent::buildStatusCheckEvent(EventState::INIT, $this->paymentTransactionClient->getMerchantConfig()->getMerchantId(), $merchantTransactionId)
         );
@@ -194,7 +191,6 @@ class PhonePePaymentClient extends PhonePeClient
      */
     public function validateVpa(string $vpa): PgValidateVpaResponse
     {
-        $pgValidateVpaResponse = null;
         $this->eventPublisher->sendEvent(
             SdkEvent::buildValidateVpaEvent(EventState::INIT, $vpa, $this->paymentTransactionClient->getMerchantConfig()->getMerchantId())
         );
@@ -220,7 +216,6 @@ class PhonePePaymentClient extends PhonePeClient
      */
     public function paymentOptions($includeNetBankingBanksList): PgPaymentsOptionsResponse
     {
-        $pgPaymentOptionsResponse = null;
         $this->eventPublisher->sendEvent(
             SdkEvent::buildPaymentOptionsEvent(EventState::INIT, $includeNetBankingBanksList, $this->paymentTransactionClient->getMerchantConfig()->getMerchantId())
         );

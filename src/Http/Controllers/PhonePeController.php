@@ -20,12 +20,12 @@ class PhonePeController extends BaseController
 
         try {
             $response = $client->getStatus($request->input('trans_id'), true);
-        } catch (Exception) {
+        } catch (Exception $exception) {
             return $this
                 ->httpResponse()
                 ->setError()
                 ->setNextUrl(PaymentHelper::getCancelURL())
-                ->setMessage(__('Payment failed!'));
+                ->setMessage($exception->getMessage() ?: __('Payment failed!'));
         }
 
         if (! $response) {
@@ -37,8 +37,7 @@ class PhonePeController extends BaseController
         }
 
         $status = match ($response->getState()) {
-            'COMPLETED' => PaymentStatusEnum::COMPLETED,
-            'SUCCESS' => PaymentStatusEnum::COMPLETED,
+            'COMPLETED', 'SUCCESS' => PaymentStatusEnum::COMPLETED,
             'PENDING' => PaymentStatusEnum::PENDING,
             default => PaymentStatusEnum::FAILED,
         };

@@ -95,7 +95,7 @@ class EventPublisher
 
     public function sendEvent($event)
     {
-        if(! $this->shouldPublishEvents) {
+        if (! $this->shouldPublishEvents) {
             return;
         }
 

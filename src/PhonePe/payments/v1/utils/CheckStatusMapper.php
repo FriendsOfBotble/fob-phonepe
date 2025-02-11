@@ -13,23 +13,19 @@ class CheckStatusMapper
 {
     public static function pgCheckStatusResponseMapper($response): PgCheckStatusResponse
     {
-        if(isset($response->paymentInstrument->type)) {
-            switch ($response->paymentInstrument->type) {
-                case CheckStatusPaymentInstrumentConstants::UPI:
-                    $instrumentResponse = self::upiInstrumentResponseMapper($response->paymentInstrument);
-
-                    break;
-                case CheckStatusPaymentInstrumentConstants::CARD:
-                    $instrumentResponse = self::cardInstrumentResponseMapper($response->paymentInstrument);
-
-                    break;
-                case CheckStatusPaymentInstrumentConstants::NETBANKING:
-                    $instrumentResponse = self::netbankingInstrumentResponseMapper($response->paymentInstrument);
-
-                    break;
-                default:
-                    $instrumentResponse = new CheckStatusPaymentInstrument($response->paymentInstrument->type);
-            }
+        if (isset($response->paymentInstrument->type)) {
+            $instrumentResponse = match ($response->paymentInstrument->type) {
+                CheckStatusPaymentInstrumentConstants::UPI => self::upiInstrumentResponseMapper(
+                    $response->paymentInstrument
+                ),
+                CheckStatusPaymentInstrumentConstants::CARD => self::cardInstrumentResponseMapper(
+                    $response->paymentInstrument
+                ),
+                CheckStatusPaymentInstrumentConstants::NETBANKING => self::netbankingInstrumentResponseMapper(
+                    $response->paymentInstrument
+                ),
+                default => new CheckStatusPaymentInstrument($response->paymentInstrument->type),
+            };
         } else {
             $instrumentResponse = null;
         }
@@ -71,5 +67,4 @@ class CheckStatusMapper
             $instrumentResponse->bankId
         );
     }
-
 }

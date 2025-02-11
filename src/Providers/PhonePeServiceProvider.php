@@ -53,7 +53,7 @@ class PhonePeServiceProvider extends ServiceProvider
             ->loadAndPublishTranslations()
             ->loadRoutes();
 
-        $this->app->booted(function () {
+        $this->app->booted(function (): void {
             add_filter(PAYMENT_METHODS_SETTINGS_PAGE, function (string $html): string {
                 return $html . PhonePePaymentMethodForm::create()->renderForm();
             }, 999);
